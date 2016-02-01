@@ -20,7 +20,6 @@ Then execute like this:
 Or run as cron job every 1 day:
 
     chmod +x python tractor-purge.py
-    nano /etc/crontab (...and enter:)
     echo "0 0 */1 * * root python /path/to/tractor-purge.py" >> /etc/crontab
 
 
