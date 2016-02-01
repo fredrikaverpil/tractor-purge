@@ -19,7 +19,7 @@ TQ = '/opt/pixar/Tractor-2.2/bin/tq'
 TRACTOR_ENGINE = 'TRACTOR-ENGINE' # You can use an IP address here
 CMD_LOGS_DIR = '/var/spool/tractor/cmd-logs'
 PURGE_LOG = '/var/tmp/tractor-purge.log'
-DAYS = '15' # keep logs and jobs of this age
+DAYS = '30' # keep logs and jobs of this age
 
 
 ####################################
@@ -52,7 +52,7 @@ def jobs_to_delete(days=None):
     """Create list of all jids (equivalient of all jobs to be deleted)
     """
     jids = []
-    command = [TQ, 'jobs', 'done and spooltime < -' + days + \
+    command = [TQ, 'jobs', 'not active and spooltime < -' + days + \
                'd', '--nh', '-c', 'jid']
     p = subprocess.Popen( command, stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT )
@@ -112,7 +112,7 @@ def delete_tractor_jobs(days=None):
     """Delete jobs from Tractor (requires that DBArchiving is False in 
         tractor.config)
     """
-    command = [TQ, '--force', '--yes', 'delete', 'done and spooltime < -' + \
+    command = [TQ, '--force', '--yes', 'delete', 'not active and spooltime < -' + \
                days + 'd']
     p = subprocess.Popen( command, stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT )
