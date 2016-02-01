@@ -2,7 +2,7 @@
 
 ### What's this?
 
-Purge task logs from Pixar's Tractor to avoid running out of disk space.
+Purge task logs from [Pixar's Tractor](https://renderman.pixar.com/view/pixars-tractor) to avoid running out of disk space.
 
 ### Instructions
 
@@ -14,7 +14,7 @@ Edit the script and set the path to tq, the engine name/IP, the cmd-logs locatio
 
 Then execute like this:
 
-    python tractor_job_log_purge.py
+    python tractor-purge.py
 
 
 Or run as cron job every 1 day:
