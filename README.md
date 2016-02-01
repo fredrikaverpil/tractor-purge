@@ -1,10 +1,8 @@
 # tractor-purge
 
-### What's this?
-
 Purge task logs from [Pixar's Tractor](https://renderman.pixar.com/view/pixars-tractor) to avoid running out of disk space.
 
-### Instructions
+### How does this work?
 
 This script was designed to be executed on the Tractor engine, and with the default cmd-logs spool path settings: `/var/spool/tractor/cmd-logs` and with `DBArchiving` set to `False` in tractor.config.
 
