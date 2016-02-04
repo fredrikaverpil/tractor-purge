@@ -14,8 +14,8 @@ from optparse import OptionParser
 
 ####################################
 # Option parser and constants
-
-parser = OptionParser()
+TRACTOR_PURGE_VERSION = 'v1.0.0'
+parser = OptionParser(version='%prog ' + TRACTOR_PURGE_VERSION)
 parser.add_option('-t', '--tq', dest='tq',
                 default='/opt/pixar/Tractor-2.2/bin/tq',
                 help='Absolute path to tq [default: %default]')      
@@ -34,7 +34,6 @@ parser.add_option('--dryrun', action='store_true', dest='dryrun',
                 default=False,
                 help='Do not perform actual deletion, instead just preview \
                       deletions')
-
 (options, args) = parser.parse_args()
 
 TQ = options.tq

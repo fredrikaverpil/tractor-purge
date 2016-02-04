@@ -19,26 +19,26 @@ Put the file somewhere on the Tractor Engine, e.g:
 
 Check out the commandline options:
 
-	$ python tractor-purge.py --help
+    $ python tractor-purge.py --help
 
-	Usage: tractor-purge.py [options]
+    Usage: tractor-purge.py [options]
 
-	Options:
-	  -h, --help            show this help message and exit
-	  -t TQ, --tq=TQ        Absolute path to tq [default:
-	                        /opt/pixar/Tractor-2.2/bin/tq]
-	  -c CMDLOGSDIR, --cmdlogsdir=CMDLOGSDIR
-	                        Absolute path to cmd-logs dir [default:
-	                        /var/spool/tractor/cmd-logs]
-	  -l LOGFILE, --log=LOGFILE
-	                        Absolute path to tractor-purge log file [default:
-	                        /var/tmp/tractor-purge.log]
-	  -d DAYS, --days=DAYS  Number of days worth of jobs/logs to keep [default:
-	                        30]
-	  --deletejobs          Delete jobs from psql database after log deletion
-	  
-	  --dryrun              Do not perform actual deletion, instead just preview
-	                        deletions
+    Options:
+      --version             show program's version number and exit
+      -h, --help            show this help message and exit
+      -t TQ, --tq=TQ        Absolute path to tq [default:
+                            /opt/pixar/Tractor-2.2/bin/tq]
+      -c CMDLOGSDIR, --cmdlogsdir=CMDLOGSDIR
+                            Absolute path to cmd-logs dir [default:
+                            /var/spool/tractor/cmd-logs]
+      -l LOGFILE, --log=LOGFILE
+                            Absolute path to tractor-purge log file [default:
+                            /var/tmp/tractor-purge.log]
+      -d DAYS, --days=DAYS  Number of days worth of jobs/logs to keep [default:
+                            30]
+      --deletejobs          Delete jobs from psql database after log deletion
+      --dryrun              Do not perform actual deletion, instead just preview
+                            deletions
 
 Then execute like this:
 
