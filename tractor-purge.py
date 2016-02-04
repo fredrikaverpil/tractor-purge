@@ -29,11 +29,11 @@ parser.add_option('-d', '--days', dest='days', default='30',
                 help='Number of days worth of jobs/logs to keep [default: %default]')
 parser.add_option('--deletejobs', action='store_true', dest='deletejobs',
                 default=False,
-                help='Delete jobs from psql database after log deletion [default: %default]')
+                help='Delete jobs from psql database after log deletion')
 parser.add_option('--dryrun', action='store_true', dest='dryrun',
                 default=False,
                 help='Do not perform actual deletion, instead just preview \
-                      deletions [default: %default]')
+                      deletions')
 
 (options, args) = parser.parse_args()
 

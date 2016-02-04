@@ -36,9 +36,9 @@ Check out the commandline options:
 	  -d DAYS, --days=DAYS  Number of days worth of jobs/logs to keep [default:
 	                        30]
 	  --deletejobs          Delete jobs from psql database after log deletion
-	                        [default: False]
+	  
 	  --dryrun              Do not perform actual deletion, instead just preview
-	                        deletions [default: False]
+	                        deletions
 
 Then execute like this:
 
