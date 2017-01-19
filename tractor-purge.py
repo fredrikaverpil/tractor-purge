@@ -23,12 +23,16 @@ parser.add_option('-c', '--cmdlogsdir', dest='cmdlogsdir',
                   help='Absolute path to cmd-logs dir [default: %default]')
 parser.add_option('-l', '--log', dest='logfile',
                   default='/var/tmp/tractor-purge.log',
-                  help='Absolute path to tractor-purge log file [default: %default]')
+                  help='Absolute path to tractor-purge log file '
+                       '[default: %default]')
 parser.add_option('-d', '--days', dest='days', default='30',
-                  help='Number of days worth of jobs/logs to keep [default: %default]')
+                  help='Number of days worth of jobs/logs to keep '
+                       '[default: %default]')
 parser.add_option('--deletejobs', action='store_true', dest='deletejobs',
                   default=False,
-                  help='Delete jobs from psql database after log deletion')
+                  help='Delete jobs from psql database after log deletion. '
+                       'If DBArchiving is True in Tractor config, archive '
+                       'jobs instead.')
 parser.add_option('--dryrun', action='store_true', dest='dryrun',
                   default=False,
                   help='Do not perform actual deletion, instead just preview \
