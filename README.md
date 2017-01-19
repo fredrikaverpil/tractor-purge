@@ -6,7 +6,7 @@ Purge command logs from [Pixar's Tractor](https://renderman.pixar.com/view/pixar
 
 This script is designed to be executed on the Tractor engine and must have write access to the command logs.
 
-The script will find all jobs (including archived jobs) which *do not* have status `active` or `ready` and which are older than `n` days. It will then delete all associated command logs. If the `--deletejobs` option is given, the jobs will also be deleted from the database (or archived if `DBArchiving` is set to `True` in Tractor's `db.config`.
+The script will find all jobs (including archived jobs) which *do not* have status `active` or `ready` and which are older than `n` days. It will then delete all associated command logs. If the `--deletejobs` option is given, the jobs will also be deleted from the database (or archived if `DBArchiving` is set to `True` in Tractor's `db.config`).
 
 Please note, instead of using the `--deletejobs` option, you may wish to run the facility provided by Pixar to purge jobs from the database: `tractor-dbctl --purge-archive-to-year-month YY-MM`
 
