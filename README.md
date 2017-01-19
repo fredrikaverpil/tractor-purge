@@ -48,6 +48,14 @@ Check out the commandline options:
 This is how I run this script in conjunction with a jobs archive db purge:
 
 ```bash
+# .---------------- minute (0 - 59)
+# |  .------------- hour (0 - 23)
+# |  |  .---------- day of month (1 - 31)
+# |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+# |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+# |  |  |  |  |
+# *  *  *  *  * user-name  command to be executed
+#
 # Tractor cmd logs purge (and archival of 7 day old jobs), run every day
   0  0 */1 *  * root /opt/tractor-purge/tractor-purge.py --days=7 --deletejobs
 #
