@@ -97,7 +97,7 @@ def get_all_job_folders(cmd_logs_dir):
     for root, directories, files in os.walk(cmd_logs_dir):
         if len(directories) > 0:
             for directory in directories:
-                match = re.search('J\d*', directory)
+                match = re.search(r'J\d*', directory)
                 if match:
                     job_folder = root + '/' + directory
                     job_folders.append(job_folder)
