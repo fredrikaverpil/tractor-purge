@@ -183,7 +183,7 @@ if __name__ == '__main__':
 
     # Delete jobs
     if DELETE_JOBS:
-        if len(delete_list) > 0:
+        if len(jids) > 0:
             delete_tractor_jobs(days=DAYS)
         else:
             logger.info('No jobs to delete.')
