@@ -8,7 +8,7 @@ This script is designed to be executed on the Tractor engine and must have write
 
 The script will find all jobs (including archived jobs) which *do not* have status `active` or `ready` and which are older than `n` days. It will then delete all associated command logs. If the `--deletejobs` option is given, the jobs will also be deleted from the database (or archived if `DBArchiving` is set to `True` in Tractor's `db.config`).
 
-Please note, instead of using the `--deletejobs` option, you may wish to run the facility provided by Pixar to purge jobs from the database: `tractor-dbctl --purge-archive-to-year-month YY-MM`
+Please note, you may wish to run the facility provided by Pixar to purge jobs from the archive database: `tractor-dbctl --purge-archive-to-year-month YY-MM`
 
 
 #### Installation and execution of script
@@ -53,3 +53,32 @@ Or run as cron job every 1 day:
     $ echo "0 0 */1 * * root python /path/to/tractor-purge.py" >> /etc/crontab
 
 
+#### Example crontab on CentOS 7
+
+This is how I run this script in conjunction with a jobs archive db purge:
+
+```bash
+# Tractor cmd logs purge (and archival of 7 day old jobs)
+    0  0 */1 *  * root /opt/pixar/tractor-purge/tractor-purge.py --days=7 --deletejobs
+#
+# Tractor job archives db purge (keep 2 months worth of jobs)
+#
+# Year and month of today
+YEAR=$((`date +%y`))
+MONTH=$((`date +%m`))
+#
+# Get year and month from today minus 2 months
+if [ $MONTH -eq 1 ]
+then
+    YEAR=$(($YEAR-1))
+    MONTH=11
+else
+    MONTH=$(($MONTH-2))
+fi
+#
+# Add padding to month
+MONTH=`printf "%02d\n" $MONTH`
+#
+# Command (must run as the user executing tractor-engine)
+0  0 */1 *  * tractoruser /opt/pixar/Tractor-2.2/bin/tractor-dbctl --purge-archive-to-year-month $YEAR-$MONTH --config-dir=/opt/pixar/config
+```
