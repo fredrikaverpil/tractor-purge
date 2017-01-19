@@ -49,7 +49,7 @@ This is how I run this script in conjunction with a jobs archive db purge:
 
 ```bash
 # Tractor cmd logs purge (and archival of 7 day old jobs), run every day
-  0  0 */1 *  * root /opt/pixar/tractor-purge/tractor-purge.py --days=7 --deletejobs
+  0  0 */1 *  * root /opt/tractor-purge/tractor-purge.py --days=7 --deletejobs
 #
 # Tractor job archives db purge (keep 2 months worth of jobs)
 #
