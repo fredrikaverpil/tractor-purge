@@ -8,7 +8,7 @@ This script is designed to be executed on the Tractor engine and must have write
 
 The script will find all jobs (including archived jobs) which *do not* have status `active` or `ready` and which are older than `n` days. It will then delete all associated command logs. If the `--deletejobs` option is given, the jobs will also be deleted from the database (or archived if `DBArchiving` is set to `True` in Tractor's `db.config`).
 
-Please note, you may wish to run the facility provided by Pixar to purge jobs from the archive database: `tractor-dbctl --purge-archive-to-year-month YY-MM`
+Please note, a separate facility provided by Pixar is available to purge jobs from the job archive database: `tractor-dbctl --purge-archive-to-year-month YY-MM`
 
 
 #### Installation and execution of script
@@ -42,24 +42,14 @@ Check out the commandline options:
       --dryrun              Do not perform actual deletion, instead just preview
                             deletions
 
-Then execute like this:
-
-    $ python tractor-purge.py [OPTIONS]
-
-
-Or run as cron job every 1 day:
-
-    $ chmod +x python tractor-purge.py
-    $ echo "0 0 */1 * * root python /path/to/tractor-purge.py" >> /etc/crontab
-
 
 #### Example crontab on CentOS 7
 
 This is how I run this script in conjunction with a jobs archive db purge:
 
 ```bash
-# Tractor cmd logs purge (and archival of 7 day old jobs)
-    0  0 */1 *  * root /opt/pixar/tractor-purge/tractor-purge.py --days=7 --deletejobs
+# Tractor cmd logs purge (and archival of 7 day old jobs), run every day
+  0  0 */1 *  * root /opt/pixar/tractor-purge/tractor-purge.py --days=7 --deletejobs
 #
 # Tractor job archives db purge (keep 2 months worth of jobs)
 #
@@ -79,6 +69,6 @@ fi
 # Add padding to month
 MONTH=`printf "%02d\n" $MONTH`
 #
-# Command (must run as the user executing tractor-engine)
-0  0 */1 *  * tractoruser /opt/pixar/Tractor-2.2/bin/tractor-dbctl --purge-archive-to-year-month $YEAR-$MONTH --config-dir=/opt/pixar/config
+# Command (must run as the user executing tractor-engine), run every day
+  0  0 */1 *  * tractoruser /opt/pixar/Tractor-2.2/bin/tractor-dbctl --purge-archive-to-year-month $YEAR-$MONTH --config-dir=/opt/pixar/config
 ```
