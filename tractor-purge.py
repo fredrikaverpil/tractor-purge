@@ -203,7 +203,6 @@ if __name__ == '__main__':
     jids = jobs_list(days=DAYS)
     if DELETE_CMD_LOGS:
         all_job_folders = get_all_job_folders(cmd_logs_dir=CMD_LOGS_DIR)
-    if DELETE_JOBS:
         job_folders_for_deletion = get_job_folders_for_deletion(
             job_folders=all_job_folders, jids=jids)
 
