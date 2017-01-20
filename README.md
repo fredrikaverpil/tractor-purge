@@ -47,7 +47,7 @@ $ python tractor-purge.py --help
 This is how I run this script in conjunction with a jobs archive db purge on a nightly basis. I have `DBArchiving` set to `True` in my `db.config`.
 
 * Archive jobs with status "not active and not ready" which are older than 7 days
-* Delete command logs older than 2 months
+* Delete command logs which are part of jobs older than 2 months
 * Purge archives database of jobs which are older than 2 months
 
 ```bash
