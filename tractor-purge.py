@@ -86,7 +86,10 @@ def jobs_list(days):
     jids = []
     command = [TQ, 'jobs',
                'not active and not ready and spooltime  < -' + days + 'd',
-               '--noheader', '--archives', '--cols', 'jid', '--sortby', 'jid']
+               '--noheader', '--archives',
+               '--cols', 'jid',
+               '--sortby', 'jid',
+               '--limit', '0']
     p = subprocess.Popen(command, stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT)
 
@@ -151,11 +154,13 @@ def delete_tractor_jobs(days):
     if not DRY_RUN:
         logger.info('Executing tq command to delete jobs...')
         command = [TQ, '--force', '--yes', 'delete',
-                   'not active and not ready and spooltime  < -' + days + 'd']
+                   'not active and not ready and spooltime  < -' + days + 'd',
+                   '--limit', '0']
     else:
         logger.info('Executing tq command to (not) delete jobs...')
         command = [TQ, 'jobs', '--archives',
-                   'not active and not ready and spooltime  < -' + days + 'd']
+                   'not active and not ready and spooltime  < -' + days + 'd',
+                   '--limit', '0']
 
     p = subprocess.Popen(command, stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT)
