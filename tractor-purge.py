@@ -210,7 +210,7 @@ if __name__ == '__main__':
     if DELETE_CMD_LOGS:
         logger.info('Job log folders found: ' +
                     str(len(all_job_folders)))
-        logger.info('Job log folders to be deleted: ' +
+        logger.info('Job log folders to be emptied: ' +
                     str(len(job_folders_for_deletion)))
     if DELETE_JOBS:
         logger.info('Jobs to be deleted: ' + str(len(jids)))
