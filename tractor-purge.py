@@ -1,4 +1,6 @@
-#!/usr/bin/env python
+"""Tractor Purge - avoid running out of diskspace!
+More info: https://github.com/fredrikaverpil/tractor-purge
+"""
 
 import sys
 import os

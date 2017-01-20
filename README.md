@@ -63,10 +63,10 @@ This is how I run this script in conjunction with a jobs archive db purge on a n
 # Tractor Purge
 #
 # Remove cmd-logs for jobs which are older than 2 months:
-  1  0 */1 *  * root /opt/tractor-purge/tractor-purge.py --delete-cmd-logs --days=60
+  1  0 */1 *  * root python /opt/tractor-purge/tractor-purge.py --delete-cmd-logs --days=60
 #
 # Archive jobs older than 7 days which are "not active and not ready":
-  5  0 */1 *  * root /opt/tractor-purge/tractor-purge.py --delete-jobs --days=7
+  5  0 */1 *  * root python /opt/tractor-purge/tractor-purge.py --delete-jobs --days=7
 #
 # Purge Tractor job archives database (keep 2 months worth of jobs):
 #
