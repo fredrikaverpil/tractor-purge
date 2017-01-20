@@ -9,43 +9,55 @@ import shutil
 import datetime
 import logging
 from optparse import OptionParser
+import time
 
 
 ####################################
 # Option parser and constants
-TRACTOR_PURGE_VERSION = 'v1.0.0'
+TRACTOR_PURGE_VERSION = 'v2.0.0'
+DEFAULT_DAYS = '30'
 parser = OptionParser(version='%prog ' + TRACTOR_PURGE_VERSION)
 parser.add_option('-t', '--tq', dest='tq',
                   default='/opt/pixar/Tractor-2.2/bin/tq',
                   help='Absolute path to tq [default: %default]')
-parser.add_option('-c', '--cmdlogsdir', dest='cmdlogsdir',
+parser.add_option('-c', '--cmd-log-sdir', dest='cmdlogsdir',
                   default='/var/spool/tractor/cmd-logs',
                   help='Absolute path to cmd-logs dir [default: %default]')
 parser.add_option('-l', '--log', dest='logfile',
                   default='/var/tmp/tractor-purge.log',
                   help='Absolute path to tractor-purge log file '
                        '[default: %default]')
-parser.add_option('-d', '--days', dest='days', default='30',
+parser.add_option('-d', '--days', dest='days', default=DEFAULT_DAYS,
                   help='Number of days worth of jobs/logs to keep '
                        '[default: %default]')
-parser.add_option('--deletejobs', action='store_true', dest='deletejobs',
+parser.add_option('--delete-cmd-logs', action='store_true',
+                  dest='deletecmdlogs',
+                  default=False, help='Delete cmd logs [default: %default]')
+parser.add_option('--delete-jobs', action='store_true', dest='deletejobs',
                   default=False,
                   help='Delete jobs from psql database after log deletion. '
                        'If DBArchiving is True in Tractor config, archive '
-                       'jobs instead.')
-parser.add_option('--dryrun', action='store_true', dest='dryrun',
+                       'jobs instead. [default: %default]')
+parser.add_option('--dry-run', action='store_true', dest='dryrun',
                   default=False,
                   help='Do not perform actual deletion, instead just preview \
-                      deletions')
+                      deletions [default: %default]')
 (options, args) = parser.parse_args()
 
 TQ = options.tq
 CMD_LOGS_DIR = options.cmdlogsdir
 PURGE_LOG = options.logfile
 DAYS = options.days
+DELETE_CMD_LOGS = options.deletecmdlogs
 DELETE_JOBS = options.deletejobs
 DRY_RUN = options.dryrun
 
+if not os.path.exists(TQ):
+    parser.error('tq not found on path' + TQ)
+if DELETE_CMD_LOGS and not os.path.exists(CMD_LOGS_DIR):
+    parser.error('cmd-logs dir not found on path ' + CMD_LOGS_DIR)
+if DELETE_JOBS is False and DELETE_JOBS is False:
+    parser.error('Neither --delete-cmd-logs or --delete-jobs were specified.')
 
 ####################################
 # General setup
@@ -68,8 +80,8 @@ logger.addHandler(ch)
 ####################################
 # Functions
 
-def jobs_to_delete(days):
-    """Create list of all jids (equivalient of all jobs to be deleted)
+def jobs_list(days):
+    """Create list of all job ids matching query
     """
     jids = []
     command = [TQ, 'jobs',
@@ -104,7 +116,7 @@ def get_all_job_folders(cmd_logs_dir):
     return job_folders
 
 
-def get_job_deletion_list(job_folders, jids):
+def get_job_folders_for_deletion(job_folders, jids):
     """Compare job folders list against jids list, create deletion list
     """
     delete_list = []
@@ -160,24 +172,48 @@ def delete_tractor_jobs(days):
 
 if __name__ == '__main__':
 
-    if not DRY_RUN:
-        logger.info('Tractor purge initiated.')
+    # Show warning
+    SECONDS = 10
+    WARNING_MESSAGE = ('Welcome to tractor-purge.\n\n' +
+                      'This script will now execute the follow actions')
+    if DRY_RUN:
+        WARNING_MESSAGE += ' in "dry run" mode:\n'
     else:
-        logger.info('Tractor purge initiated in "dry run" mode.')
+        WARNING_MESSAGE += ':\n'
+    if DELETE_CMD_LOGS:
+        WARNING_MESSAGE += ('- Delete cmd-logs older than ' +
+                            str(DAYS) + ' days.\n')
+    if DELETE_JOBS:
+        WARNING_MESSAGE += ('- Delete/archive jobs older than ' +
+                            str(DAYS) + ' days.\n')
+    WARNING_MESSAGE += ('\nAbort now (ctrl+c) if this is does not look ' +
+                        'right to you. You have ' + str(SECONDS) + ' ' +
+                        'seconds and counting...')
+    logger.warning(WARNING_MESSAGE)
+    time.sleep(SECONDS)
+
+    logger.info('Tractor purge initiated.')
 
     # Queries
-    jids = jobs_to_delete(days=DAYS)
-    job_folders = get_all_job_folders(cmd_logs_dir=CMD_LOGS_DIR)
-    delete_list = get_job_deletion_list(job_folders=job_folders, jids=jids)
+    jids = jobs_list(days=DAYS)
+    if DELETE_CMD_LOGS:
+        all_job_folders = get_all_job_folders(cmd_logs_dir=CMD_LOGS_DIR)
+    if DELETE_JOBS:
+        job_folders_for_deletion = get_job_folders_for_deletion(
+            job_folders=all_job_folders, jids=jids)
 
     # Summary
-    logger.info('Jobs to be deleted: ' + str(len(jids)))
-    logger.info('Job log folders found: ' + str(len(job_folders)))
-    logger.info('Job log folders to be deleted: ' + str(len(delete_list)))
+    if DELETE_CMD_LOGS:
+        logger.info('Job log folders found: ' +
+                    str(len(all_job_folders)))
+        logger.info('Job log folders to be deleted: ' +
+                    str(len(job_folders_for_deletion)))
+    if DELETE_JOBS:
+        logger.info('Jobs to be deleted: ' + str(len(jids)))
 
     # Delete logs
     if len(jids) > 0:
-        delete_logs(delete_list=delete_list)
+        delete_logs(delete_list=job_folders_for_deletion)
     else:
         logger.info('No logs to delete.')
 

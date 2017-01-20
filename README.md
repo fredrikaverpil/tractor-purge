@@ -19,33 +19,36 @@ Put the file somewhere on the Tractor Engine, e.g:
 
 Check out the commandline options:
 
-    $ python tractor-purge.py --help
+```
+$ python tractor-purge.py --help
 
-    Usage: tractor-purge.py [options]
-
-    Options:
-      --version             show program's version number and exit
-      -h, --help            show this help message and exit
-      -t TQ, --tq=TQ        Absolute path to tq [default:
-                            /opt/pixar/Tractor-2.2/bin/tq]
-      -c CMDLOGSDIR, --cmdlogsdir=CMDLOGSDIR
-                            Absolute path to cmd-logs dir [default:
-                            /var/spool/tractor/cmd-logs]
-      -l LOGFILE, --log=LOGFILE
-                            Absolute path to tractor-purge log file [default:
-                            /var/tmp/tractor-purge.log]
-      -d DAYS, --days=DAYS  Number of days worth of jobs/logs to keep [default:
-                            30]
-      --deletejobs          Delete jobs from psql database after log deletion. If
-                            DBArchiving is True in Tractor config, archive jobs
-                            instead.
-      --dryrun              Do not perform actual deletion, instead just preview
-                            deletions
-
+  --version             show program's version number and exit
+  -h, --help            show this help message and exit
+  -t TQ, --tq=TQ        Absolute path to tq [default:
+                        /opt/pixar/Tractor-2.2/bin/tq]
+  -c CMDLOGSDIR, --cmd-log-sdir=CMDLOGSDIR
+                        Absolute path to cmd-logs dir [default:
+                        /var/spool/tractor/cmd-logs]
+  -l LOGFILE, --log=LOGFILE
+                        Absolute path to tractor-purge log file [default:
+                        /var/tmp/tractor-purge.log]
+  -d DAYS, --days=DAYS  Number of days worth of jobs/logs to keep [default:
+                        30]
+  --delete-cmd-logs     Delete cmd logs [default: False]
+  --delete-jobs         Delete jobs from psql database after log deletion. If
+                        DBArchiving is True in Tractor config, archive jobs
+                        instead. [default: False]
+  --dry-run             Do not perform actual deletion, instead just preview
+                        deletions [default: False]
+```
 
 #### Example crontab on CentOS 7
 
-This is how I run this script in conjunction with a jobs archive db purge:
+This is how I run this script in conjunction with a jobs archive db purge on a nightly basis. I have `DBArchiving` set to `True` in my `db.config`.
+
+* Archive jobs with status "not active and not ready" which are older than 7 days
+* Delete command logs older than 2 months
+* Purge archives database of jobs which are older than 2 months
 
 ```bash
 # .---------------- minute (0 - 59)
@@ -56,10 +59,16 @@ This is how I run this script in conjunction with a jobs archive db purge:
 # |  |  |  |  |
 # *  *  *  *  * user-name  command to be executed
 #
-# Tractor cmd logs purge (and archival of 7 day old jobs), run every day
-  0  0 */1 *  * root /opt/tractor-purge/tractor-purge.py --days=7 --deletejobs
+
+# Tractor Purge
 #
-# Tractor job archives db purge (keep 2 months worth of jobs)
+# Remove cmd-logs for jobs which are older than 2 months:
+  1  0 */1 *  * root /opt/tractor-purge/tractor-purge.py --delete-cmd-logs --days=60
+#
+# Archive jobs older than 7 days which are "not active and not ready":
+  5  0 */1 *  * root /opt/tractor-purge/tractor-purge.py --delete-jobs --days=7
+#
+# Purge Tractor job archives database (keep 2 months worth of jobs):
 #
 # Year and month of today
 YEAR=$((`date +%y`))
