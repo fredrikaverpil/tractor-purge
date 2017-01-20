@@ -216,10 +216,11 @@ if __name__ == '__main__':
         logger.info('Jobs to be deleted: ' + str(len(jids)))
 
     # Delete logs
-    if len(jids) > 0:
-        delete_logs(delete_list=job_folders_for_deletion)
-    else:
-        logger.info('No logs to delete.')
+    if DELETE_CMD_LOGS:
+        if len(jids) > 0:
+            delete_logs(delete_list=job_folders_for_deletion)
+        else:
+            logger.info('No logs to delete.')
 
     # Delete jobs
     if DELETE_JOBS:
