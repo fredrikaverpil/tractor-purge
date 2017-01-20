@@ -1,6 +1,6 @@
 # tractor-purge
 
-Purge command logs and delete/archive jobs from [Pixar's Tractor](https://renderman.pixar.com/view/pixars-tractor) to avoid running out of disk space.
+Purge command logs and/or delete/archive jobs from [Pixar's Tractor](https://renderman.pixar.com/view/pixars-tractor) to avoid running out of disk space.
 
 ### How does this work?
 
