@@ -86,7 +86,7 @@ def jobs_list(days):
     jids = []
     command = [TQ, 'jobs',
                'not active and not ready and spooltime  < -' + days + 'd',
-               '--noheader', '--archives', '-c', 'jid']
+               '--noheader', '--archives', '--cols', 'jid', '--sortby', 'jid']
     p = subprocess.Popen(command, stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT)
 
@@ -95,7 +95,7 @@ def jobs_list(days):
             sys.stdout.flush()
             jid = line.rstrip()
             jids.append(int(jid))
-            logger.info('Added job for deletion: ' + jid)
+            logger.info('Found job: ' + jid)
     except:
         logger.warning('Failed to read stdout.')
 
