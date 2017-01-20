@@ -56,7 +56,7 @@ if not os.path.exists(TQ):
     parser.error('tq not found on path' + TQ)
 if DELETE_CMD_LOGS and not os.path.exists(CMD_LOGS_DIR):
     parser.error('cmd-logs dir not found on path ' + CMD_LOGS_DIR)
-if DELETE_JOBS is False and DELETE_JOBS is False:
+if DELETE_CMD_LOGS is False and DELETE_JOBS is False:
     parser.error('Neither --delete-cmd-logs or --delete-jobs were specified.')
 
 ####################################
