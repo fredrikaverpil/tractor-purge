@@ -157,7 +157,8 @@ def delete_tractor_jobs(days):
         logger.info('Executing tq command to delete jobs...')
         command = [TQ, '--force', '--yes', 'delete',
                    'not active and not ready and spooltime  < -' + days + 'd',
-                   '--limit', '0']
+                   '--limit', '0',
+                   '--cols', 'jid']
     else:
         logger.info('Executing tq command to (not) delete jobs...')
         command = [TQ, 'jobs', '--archives',
