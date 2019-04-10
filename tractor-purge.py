@@ -4,11 +4,9 @@ More info: https://github.com/fredrikaverpil/tractor-purge
 
 import sys
 import os
-import platform
 import subprocess
 import re
 import shutil
-import datetime
 import logging
 from optparse import OptionParser
 import time
