@@ -12,7 +12,6 @@ import datetime
 import logging
 from optparse import OptionParser
 import time
-import glob
 
 
 ####################################
@@ -83,20 +82,16 @@ logger.addHandler(ch)
 ####################################
 # Functions
 
-
-def jids_to_keep(days, keep_archived=False):
-    """Create list of all jids to keep."""
-
+def jobs_list(days):
+    """Create list of all job ids matching query
+    """
     jids = []
     command = [TQ, 'jobs',
-               'spooltime > -' + days + 'd or active or ready or blocked',
-               '--noheader',
+               'not active and not ready and spooltime  < -' + days + 'd',
+               '--noheader', '--archives',
                '--cols', 'jid',
                '--sortby', 'jid',
                '--limit', '0']
-    if keep_archived:
-        command.append("--archives")
-
     p = subprocess.Popen(command, stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT)
 
@@ -105,7 +100,7 @@ def jids_to_keep(days, keep_archived=False):
             sys.stdout.flush()
             jid = line.rstrip()
             jids.append(int(jid))
-            logger.info('Keep: ' + jid)
+            logger.info('Found job: ' + jid)
     except:
         logger.warning('Failed to read stdout.')
 
@@ -113,42 +108,34 @@ def jids_to_keep(days, keep_archived=False):
 
 
 def get_all_job_folders(cmd_logs_dir):
-    """Return list of job folders."""
+    """Create list of all job folders
+    """
+    job_folders = []
+    for root, directories, files in os.walk(cmd_logs_dir):
+        if len(directories) > 0:
+            for directory in directories:
+                match = re.search(r'J\d*', directory)
+                if match:
+                    job_folder = root + '/' + directory
+                    job_folders.append(job_folder)
+    return job_folders
 
-    return glob.glob("%s/*/J*" % (cmd_logs_dir))
 
-
-def get_job_folders_for_deletion(job_folders, keep_jids):
-    """Return list of job folders to NOT keep."""
-
-    jids_to_delete = []
-
+def get_job_folders_for_deletion(job_folders, jids):
+    """Compare job folders list against jids list, create deletion list
+    """
+    delete_list = []
     for job_folder in job_folders:
-        jid = int(os.path.basename(job_folder).replace("J", ""))
-        print(jid, keep_jids[0])
-        if jid not in keep_jids:
-            jids_to_delete.append(jid)
+        jid_match = False
+        for jid in jids:
+            if job_folder.endswith('J' + str(jid)):
+                jid_match = True
 
-    return jids_to_delete
+        if jid_match:
+            delete_list.append(job_folder)
+            logger.info('Added log folder for deletion: ' + job_folder)
 
-
-def get_size(start_path = '.'):
-    total_size = 0
-    for dirpath, dirnames, filenames in os.walk(start_path):
-        for f in filenames:
-            fp = os.path.join(dirpath, f)
-            total_size += os.path.getsize(fp)
-    return total_size
-
-
-def convert_size(size_bytes):
-   if size_bytes == 0:
-       return "0B"
-   size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
-   i = int(math.floor(math.log(size_bytes, 1024)))
-   p = math.pow(1024, i)
-   s = round(size_bytes / p, 2)
-   return "%s %s" % (s, size_name[i])
+    return delete_list
 
 
 def delete_logs(delete_list):
@@ -216,21 +203,20 @@ if __name__ == '__main__':
     logger.info('Tractor purge initiated.')
 
     # Queries
-    jids = jids_to_keep(days=DAYS)
+    jids = jobs_list(days=DAYS)
     if DELETE_CMD_LOGS:
         all_job_folders = get_all_job_folders(cmd_logs_dir=CMD_LOGS_DIR)
         job_folders_for_deletion = get_job_folders_for_deletion(
-            job_folders=all_job_folders, keep_jids=jids)
+            job_folders=all_job_folders, jids=jids)
 
     # Summary
-    print("Summary:")
     if DELETE_CMD_LOGS:
-        logger.info('Job log folders found: %s' % len(all_job_folders))
-        logger.info('Job log folders to be emptied: %s' % len(job_folders_for_deletion))
+        logger.info('Job log folders found: ' +
+                    str(len(all_job_folders)))
+        logger.info('Job log folders to be emptied: ' +
+                    str(len(job_folders_for_deletion)))
     if DELETE_JOBS:
-        logger.info('Jobs to be deleted: %s' % len(jids))
-
-    sys.exit(1)
+        logger.info('Jobs to be deleted: ' + str(len(jids)))
 
     # Delete logs
     if DELETE_CMD_LOGS:
