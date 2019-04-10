@@ -12,6 +12,7 @@ import datetime
 import logging
 from optparse import OptionParser
 import time
+import glob
 
 
 ####################################
@@ -82,16 +83,23 @@ logger.addHandler(ch)
 ####################################
 # Functions
 
-def jobs_list(days):
-    """Create list of all job ids matching query
+
+def jids_to_keep(days):
+    """Return list of jids to be kept.
+
+    NOTE: this query returns all jids within the time span in order to
+          NOT delete them.
     """
+
     jids = []
     command = [TQ, 'jobs',
-               'not active and not ready and spooltime  < -' + days + 'd',
-               '--noheader', '--archives',
+               'spooltime > -' + days + 'd or active or ready or blocked',
+               '--noheader',
+               '--archives',
                '--cols', 'jid',
                '--sortby', 'jid',
                '--limit', '0']
+
     p = subprocess.Popen(command, stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT)
 
@@ -100,7 +108,7 @@ def jobs_list(days):
             sys.stdout.flush()
             jid = line.rstrip()
             jids.append(int(jid))
-            logger.info('Found job: ' + jid)
+            logger.info('Keep: ' + jid)
     except:
         logger.warning('Failed to read stdout.')
 
@@ -108,34 +116,23 @@ def jobs_list(days):
 
 
 def get_all_job_folders(cmd_logs_dir):
-    """Create list of all job folders
-    """
-    job_folders = []
-    for root, directories, files in os.walk(cmd_logs_dir):
-        if len(directories) > 0:
-            for directory in directories:
-                match = re.search(r'J\d*', directory)
-                if match:
-                    job_folder = root + '/' + directory
-                    job_folders.append(job_folder)
-    return job_folders
+    """Return list of job folders."""
+
+    return glob.glob("%s/*/J*" % (cmd_logs_dir))
 
 
-def get_job_folders_for_deletion(job_folders, jids):
-    """Compare job folders list against jids list, create deletion list
-    """
-    delete_list = []
+def get_job_folders_for_deletion(job_folders, keep_jids):
+    """Return list of job folders to NOT keep."""
+
+    folders_to_delete = []
+
     for job_folder in job_folders:
-        jid_match = False
-        for jid in jids:
-            if job_folder.endswith('J' + str(jid)):
-                jid_match = True
+        jid = int(os.path.basename(job_folder).replace("J", ""))
 
-        if jid_match:
-            delete_list.append(job_folder)
-            logger.info('Added log folder for deletion: ' + job_folder)
+        if jid not in keep_jids:
+            folders_to_delete.append(job_folder)
 
-    return delete_list
+    return folders_to_delete
 
 
 def delete_logs(delete_list):
@@ -143,10 +140,10 @@ def delete_logs(delete_list):
     """
     for job_folder in delete_list:
         if not DRY_RUN:
-            logger.info('Deleting ' + job_folder)
+            logger.info('Deleting %s' % job_folder)
             shutil.rmtree(job_folder)
         else:
-            logger.info('Dry run: (not) deleting ' + job_folder)
+            logger.info('Dry run: (not) deleting %s' % job_folder)
 
 
 def delete_tractor_jobs(days):
@@ -157,12 +154,13 @@ def delete_tractor_jobs(days):
         logger.info('Executing tq command to delete jobs...')
         command = [TQ, '--force', '--yes', 'delete',
                    'not active and not ready and spooltime  < -' + days + 'd',
-                   '--limit', '0',
-                   '--cols', 'jid']
+                   '--cols', 'jid',
+                   '--limit', '0']
     else:
         logger.info('Executing tq command to (not) delete jobs...')
         command = [TQ, 'jobs', '--archives',
                    'not active and not ready and spooltime  < -' + days + 'd',
+                   '--cols', 'jid',
                    '--limit', '0']
 
     p = subprocess.Popen(command, stdout=subprocess.PIPE,
@@ -183,7 +181,7 @@ if __name__ == '__main__':
     # Show warning
     SECONDS = 10
     WARNING_MESSAGE = ('Welcome to tractor-purge.\n\n' +
-                      'This script will now execute the follow actions')
+                       'This script will now execute the follow actions')
     if DRY_RUN:
         WARNING_MESSAGE += ' in "dry run" mode:\n'
     else:
@@ -203,20 +201,18 @@ if __name__ == '__main__':
     logger.info('Tractor purge initiated.')
 
     # Queries
-    jids = jobs_list(days=DAYS)
+    jids = jids_to_keep(days=DAYS)
     if DELETE_CMD_LOGS:
         all_job_folders = get_all_job_folders(cmd_logs_dir=CMD_LOGS_DIR)
         job_folders_for_deletion = get_job_folders_for_deletion(
-            job_folders=all_job_folders, jids=jids)
+            job_folders=all_job_folders, keep_jids=jids)
 
     # Summary
     if DELETE_CMD_LOGS:
-        logger.info('Job log folders found: ' +
-                    str(len(all_job_folders)))
-        logger.info('Job log folders to be emptied: ' +
-                    str(len(job_folders_for_deletion)))
+        logger.info('Job log folders found: %s' % len(all_job_folders))
+        logger.info('Job log folders to be emptied: %s' % len(job_folders_for_deletion))
     if DELETE_JOBS:
-        logger.info('Jobs to be deleted: ' + str(len(jids)))
+        logger.info('Jobs to be deleted: %s' % len(jids))
 
     # Delete logs
     if DELETE_CMD_LOGS:
