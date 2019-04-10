@@ -83,9 +83,32 @@ logger.addHandler(ch)
 ####################################
 # Functions
 
+def jids_to_delete(days):
+    """Create list of all job ids matching query."""
+    jids = []
+    command = [TQ, 'jobs',
+               'not active and not ready and spooltime  < -' + days + 'd',
+               '--noheader', '--archives',
+               '--cols', 'jid',
+               '--sortby', 'jid',
+               '--limit', '0']
+    p = subprocess.Popen(command, stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT)
+
+    try:
+        for line in iter(p.stdout.readline, b''):
+            sys.stdout.flush()
+            jid = line.rstrip()
+            jids.append(int(jid))
+            logger.info('Found job: ' + jid)
+    except:
+        logger.warning('Failed to read stdout.')
+
+    return jids
+
 
 def jids_to_keep(days):
-    """Return list of jids to be kept.
+    """Create list of all job ids matching query.
 
     NOTE: this query returns all jids within the time span in order to
           NOT delete them.
@@ -108,17 +131,11 @@ def jids_to_keep(days):
             sys.stdout.flush()
             jid = line.rstrip()
             jids.append(int(jid))
-            logger.info('Keep: ' + jid)
+            logger.info('Keep logs for job: ' + jid)
     except:
         logger.warning('Failed to read stdout.')
 
     return jids
-
-
-def get_all_job_folders(cmd_logs_dir):
-    """Return list of job folders."""
-
-    return glob.glob("%s/*/J*" % (cmd_logs_dir))
 
 
 def get_job_folders_for_deletion(job_folders, keep_jids):
@@ -176,56 +193,58 @@ def delete_tractor_jobs(days):
 ####################################
 # Main
 
-if __name__ == '__main__':
+def main():
+    """Main program."""
 
     # Show warning
-    SECONDS = 10
-    WARNING_MESSAGE = ('Welcome to tractor-purge.\n\n' +
+    seconds = 10
+    warning_message = ('Welcome to tractor-purge.\n\n' +
                        'This script will now execute the follow actions')
     if DRY_RUN:
-        WARNING_MESSAGE += ' in "dry run" mode:\n'
+        warning_message += ' in "dry run" mode:\n'
     else:
-        WARNING_MESSAGE += ':\n'
+        warning_message += ':\n'
     if DELETE_CMD_LOGS:
-        WARNING_MESSAGE += ('- Delete cmd-logs older than ' +
+        warning_message += ('- Delete cmd-logs older than ' +
                             str(DAYS) + ' days.\n')
     if DELETE_JOBS:
-        WARNING_MESSAGE += ('- Delete/archive jobs older than ' +
+        warning_message += ('- Delete/archive jobs older than ' +
                             str(DAYS) + ' days.\n')
-    WARNING_MESSAGE += ('\nAbort now (ctrl+c) if this is does not look ' +
-                        'right to you. You have ' + str(SECONDS) + ' ' +
+    warning_message += ('\nAbort now (ctrl+c) if this is does not look ' +
+                        'right to you. You have ' + str(seconds) + ' ' +
                         'seconds and counting...')
-    logger.warning(WARNING_MESSAGE)
-    time.sleep(SECONDS)
+    logger.warning(warning_message)
+    time.sleep(seconds)
 
     logger.info('Tractor purge initiated.')
 
     # Queries
-    jids = jids_to_keep(days=DAYS)
     if DELETE_CMD_LOGS:
-        all_job_folders = get_all_job_folders(cmd_logs_dir=CMD_LOGS_DIR)
-        job_folders_for_deletion = get_job_folders_for_deletion(
+        jids = jids_to_keep(days=DAYS)
+        all_job_folders = glob.glob("%s/*/J*" % (CMD_LOGS_DIR))
+        paths_to_delete = get_job_folders_for_deletion(
             job_folders=all_job_folders, keep_jids=jids)
 
-    # Summary
-    if DELETE_CMD_LOGS:
         logger.info('Job log folders found: %s' % len(all_job_folders))
-        logger.info('Job log folders to be emptied: %s' % len(job_folders_for_deletion))
-    if DELETE_JOBS:
-        logger.info('Jobs to be deleted: %s' % len(jids))
+        logger.info('Job log folders to be emptied: %s' % len(paths_to_delete))
 
-    # Delete logs
-    if DELETE_CMD_LOGS:
         if len(jids) > 0:
-            delete_logs(delete_list=job_folders_for_deletion)
+            delete_logs(delete_list=paths_to_delete)
         else:
             logger.info('No logs to delete.')
 
     # Delete jobs
-    if DELETE_JOBS:
+    elif DELETE_JOBS:
+        jids = jids_to_delete(days=DAYS)
+        logger.info('Jobs to be deleted: %s' % len(jids))
+
         if len(jids) > 0:
             delete_tractor_jobs(days=DAYS)
         else:
             logger.info('No jobs to delete.')
 
     logger.info('Tractor purge done.\n')
+
+
+if __name__ == '__main__':
+    main()
