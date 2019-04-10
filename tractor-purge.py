@@ -15,7 +15,7 @@ import glob
 
 ####################################
 # Option parser and constants
-TRACTOR_PURGE_VERSION = 'v2.0.0'
+TRACTOR_PURGE_VERSION = 'v2.1.0'
 DEFAULT_DAYS = '30'
 parser = OptionParser(version='%prog ' + TRACTOR_PURGE_VERSION)
 parser.add_option('-t', '--tq', dest='tq',
