@@ -86,7 +86,7 @@ def jids_to_delete(days):
     jids = []
     command = [TQ, 'jobs',
                'not active and not ready and spooltime  < -' + days + 'd',
-               '--noheader', '--archives',
+               '--noheader',
                '--cols', 'jid',
                '--sortby', 'jid',
                '--limit', '0']
